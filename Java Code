@@ -1,0 +1,169 @@
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
+class Product {
+    String name;
+    double price;
+    int quantity;
+
+    public Product(String name, double price, int quantity) {
+        this.name = name;
+        this.price = price;
+        this.quantity = quantity;
+    }
+}
+
+class Sale {
+    String productName;
+    int quantitySold;
+
+    public Sale(String productName, int quantitySold) {
+        this.productName = productName;
+        this.quantitySold = quantitySold;
+    }
+}
+
+public class InventoryManagementSystem {
+    private Map<String, Product> inventory = new HashMap<>();
+    private Map<String, Integer> salesTracking = new HashMap<>();
+    private Scanner scanner = new Scanner(System.in);
+    private static final int LOW_STOCK_THRESHOLD = 5;
+
+    public static void main(String[] args) {
+        InventoryManagementSystem ims = new InventoryManagementSystem();
+        ims.run();
+    }
+
+    public void run() {
+        while (true) {
+            System.out.println("1. Add Product\n2. Update Product\n3. Remove Product\n4. Sales Recording\n5. Sales Tracking\n6. Generate Report\n7. Exit");
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume the newline character
+
+            switch (choice) {
+                case 1:
+                    addProduct();
+                    break;
+                case 2:
+                    updateProduct();
+                    break;
+                case 3:
+                    removeProduct();
+                    break;
+                case 4:
+                    salesRecording();
+                    break;
+                case 5:
+                    salesTracking();
+                    break;
+                case 6:
+                    generateReport();
+                    break;
+                case 7:
+                    System.out.println("Exiting the program...");
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private void addProduct() {
+        System.out.print("Enter product name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter product price: ");
+        double price = scanner.nextDouble();
+        System.out.print("Enter initial quantity: ");
+        int quantity = scanner.nextInt();
+
+        Product product = new Product(name, price, quantity);
+        inventory.put(name, product);
+
+        System.out.println("Product added successfully!");
+        checkLowStock(product);
+    }
+
+    private void updateProduct() {
+        System.out.print("Enter product name to update: ");
+        String name = scanner.nextLine();
+
+        if (inventory.containsKey(name)) {
+            Product product = inventory.get(name);
+
+            System.out.print("Enter new price: ");
+            product.price = scanner.nextDouble();
+            System.out.print("Enter new quantity: ");
+            product.quantity = scanner.nextInt();
+
+            System.out.println("Product updated successfully!");
+            checkLowStock(product);
+        } else {
+            System.out.println("Product not found!");
+        }
+    }
+
+    private void removeProduct() {
+        System.out.print("Enter product name to remove: ");
+        String name = scanner.nextLine();
+
+        if (inventory.containsKey(name)) {
+            inventory.remove(name);
+            System.out.println("Product removed successfully!");
+        } else {
+            System.out.println("Product not found!");
+        }
+    }
+
+    private void salesRecording() {
+        System.out.print("Enter product name for sales recording: ");
+        String name = scanner.nextLine();
+
+        if (inventory.containsKey(name)) {
+            Product product = inventory.get(name);
+
+            System.out.print("Enter quantity sold: ");
+            int quantitySold = scanner.nextInt();
+
+            if (quantitySold <= product.quantity) {
+                product.quantity -= quantitySold;
+                System.out.println("Sales recorded successfully!");
+                checkLowStock(product);
+
+                // Record the sale
+                Sale sale = new Sale(name, quantitySold);
+                salesTracking.put(name, salesTracking.getOrDefault(name, 0) + quantitySold);
+            } else {
+                System.out.println("Not enough stock to record sales!");
+            }
+        } else {
+            System.out.println("Product not found!");
+        }
+    }
+
+    private void salesTracking() {
+        System.out.println("=== Sales Tracking ===");
+        for (Map.Entry<String, Integer> entry : salesTracking.entrySet()) {
+            String productName = entry.getKey();
+            int quantitySold = entry.getValue();
+            System.out.println("Product: " + productName + ", Quantity Sold: " + quantitySold);
+        }
+        System.out.println("=======================");
+    }
+
+    private void generateReport() {
+        System.out.println("=== Inventory Report ===");
+        for (Map.Entry<String, Product> entry : inventory.entrySet()) {
+            Product product = entry.getValue();
+            System.out.println("Product: " + product.name + ", Price: $" + product.price + ", Quantity: " + product.quantity);
+        }
+        System.out.println("=========================");
+    }
+
+    private void checkLowStock(Product product) {
+        if (product.quantity <= LOW_STOCK_THRESHOLD) {
+            System.out.println("Low stock alert: Product '" + product.name + "' is running low. Current quantity: " + product.quantity);
+        }
+    }
+}
